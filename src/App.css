@@ -63,6 +63,18 @@
   padding: 2px;
 }
 .App-button {
-  min-width: 40px;
-  height: 26px;
+  width: 140px;
+  text-align: center;
+  padding: 0.4rem;
+  margin: 0.2rem;
+  min-height: 26px;
+  color: #1890ff;
+  border: 2px solid #1890ff;
+  border-radius: 5px;
+  font-weight: 600;
+}
+.App-button:hover {
+  background-color: #1890ff;
+  color: #fff;
+  cursor: pointer;
 }

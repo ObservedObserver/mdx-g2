@@ -39,42 +39,13 @@ class App extends Component {
       console.log(data)
       this.chart.source(data)
       let self = this
-
-      this.chart.facet('rect', {
-        fields: [self.dataset.MeasureType, ...row.slice(1).concat(column.slice(1))],
-        eachView (view) {
-          let geom;
-          switch (chartType) {
-            case 'bar':
-              geom = view.interval().adjust([{
-                type: 'dodge',
-                marginRatio: 1 / 32
-              }]);
-              break
-            case 'line':
-              geom = view.line()
-              break
-            case 'stackBar':
-              geom = view.intervalStack()
-              break
-            case 'stackLine':
-              geom = view.lineStack()
-              break
-            case 'area':
-              geom = view.area()
-              break
-            case 'stackArea':
-              geom = view.areaStack()
-              break
-            default: 
-              geom = view.interval().adjust([{
-                type: 'dodge',
-                marginRatio: 1 / 32
-              }]);
-          }
-          geom.position(row[0] + '*' + self.dataset.MeasureValue ).color(column[0])
-        }
-      });
+      this.renderViews({
+        facetFields: [self.dataset.MeasureType, ...row.slice(1).concat(column.slice(1))],
+        dimensions: row,
+        measures: [self.dataset.MeasureValue],
+        colors: column,
+        chartType
+      })
       this.chart.render()
     } else if (row.length && column.length && cube && !measure.length) {
       let dimRow, meaColumn;
@@ -86,46 +57,54 @@ class App extends Component {
       let data = this.dataset.getVisData(dimRow, meaColumn)
       this.chart.source(data)
       let self = this
-
-      this.chart.facet('rect', {
-        fields: [self.dataset.MeasureType, ...dimRow.slice(1)],
-        eachView (view) {
-          let geom;
-          switch (chartType) {
-            case 'bar':
-              geom = view.interval().adjust([{
-                type: 'dodge',
-                marginRatio: 1 / 32
-              }]);
-              break
-            case 'line':
-              geom = view.line()
-              break
-            case 'stackBar':
-              geom = view.intervalStack()
-              break
-            case 'stackLine':
-              geom = view.lineStack()
-              break
-            case 'area':
-              geom = view.area()
-              break
-            case 'stackArea':
-              geom = view.areaStack()
-              break
-            default: 
-              geom = view.interval().adjust([{
-                type: 'dodge',
-                marginRatio: 1 / 32
-              }]);
-          }
-          geom.position(dimRow[0] + '*' + self.dataset.MeasureValue).color(dimRow[0])
-        }
-      });
+      this.renderViews({
+        facetFields: [self.dataset.MeasureType, ...dimRow.slice(1)], 
+        dimensions: dimRow, 
+        measures: [self.dataset.MeasureValue], 
+        colors: dimRow,
+        chartType
+      })
       this.chart.render()
     } else {
       this.chart.clear()
     }
+  }
+  renderViews = ({facetFields, dimensions, measures, colors, chartType}) => {
+    this.chart.facet('rect', {
+      fields: facetFields,
+      eachView (view) {
+        let geom;
+        switch (chartType) {
+          case 'bar':
+            geom = view.interval().adjust([{
+              type: 'dodge',
+              marginRatio: 1 / 32
+            }]);
+            break
+          case 'line':
+            geom = view.line()
+            break
+          case 'stackBar':
+            geom = view.intervalStack()
+            break
+          case 'stackLine':
+            geom = view.lineStack()
+            break
+          case 'area':
+            geom = view.area()
+            break
+          case 'stackArea':
+            geom = view.areaStack()
+            break
+          default: 
+            geom = view.interval().adjust([{
+              type: 'dodge',
+              marginRatio: 1 / 32
+            }]);
+        }
+        geom.position(dimensions[0] + '*' + measures[0]).color(colors[0])
+      }
+    });
   }
   getMDX = (ev) => {
     // console.log(ev.target.value)
@@ -135,10 +114,10 @@ class App extends Component {
     console.log('words', words)
     this.setState({
       mdxCode: mdx,
-      mdxString: (<p>ROWS: [<span style={{color: 'red'}}>{row.toString()}</span>]<br/>
-       COLUMNS: [<span style={{color: 'green'}}>{column.toString()}</span>]<br/>
-       CUBE [<span style={{color: 'orange'}}>{cube}</span>] <br/>
-       MEASURES: [<span style={{color: 'blue'}}>{measure.toString()}</span>]</p> ),
+      mdxString: (<p>ROWS: [<span style={{color: '#f5222d'}}>{row.toString()}</span>]<br/>
+       COLUMNS: [<span style={{color: '#52c41a'}}>{column.toString()}</span>]<br/>
+       CUBE [<span style={{color: '#faad14'}}>{cube}</span>] <br/>
+       MEASURES: [<span style={{color: '#1890ff'}}>{measure.toString()}</span>]</p> ),
       words: words
     })
     
@@ -189,13 +168,13 @@ class App extends Component {
   }
   render() {
     let dims = Object.keys(Dimensions).map((dim) => {
-      return (<span draggable="true" onDragStart={this.dragStart} className="dim-label">{dim}</span>)
+      return (<span key={dim} draggable="true" onDragStart={this.dragStart} className="dim-label">{dim}</span>)
     })
     let meas = Object.keys(Measures).map((mea) => {
-      return (<span draggable="true" onDragStart={this.dragStart} className="mea-label">{mea}</span>)
+      return (<span key={mea} draggable="true" onDragStart={this.dragStart} className="mea-label">{mea}</span>)
     })
     let cubes = ['dataSource'].map((cube) => {
-      return (<span draggable="true" onDragStart={this.dragStart} className="cube-label">{cube}</span>)
+      return (<span key={cube} draggable="true" onDragStart={this.dragStart} className="cube-label">{cube}</span>)
     })
     // this.chart.render()
     return (
@@ -207,26 +186,21 @@ class App extends Component {
           <p>Cube: {cubes}</p>
           <p>维度: {dims}</p>
           <p>度量: {meas}</p>
-          <p className="App-intro">
-          : )
-          </p>
-          <p>example: {'select {[department]} on row, {[video]} on column from [dataSource] where {[profit], [count]}'}</p>
+          <p>example: <i>{'select {[department]} on row, {[video]} on column from [dataSource] where {[profit], [count]}'}</i></p>
           <h3>Your Mdx:</h3>
           {this.state.mdxString}
-          <h3>Debug</h3>
-          {this.state.hint}
-          <br/>
+          <h4>Debug: {this.state.hint}</h4>
           <div>
           <textarea ref="textarea" onDrop={this.dragDrop} onDragOver={this.allowDrag} onChange={this.getMDX} className="App-Input" value={this.state.mdxCode}></textarea>
           </div>
           <div>
             <select value={this.state.choosenType} onChange={this.changeChart}>
             {this.state.chartTypes.map((chart) => {
-              return (<option value={chart}>{chart}</option>)
+              return (<option key={chart} value={chart}>{chart}</option>)
             })}
             </select>
           </div>
-          <button className="App-button" onClick={this.generateChart} >Generate Chart</button>
+          <div className="App-button" onClick={this.generateChart} >Generate Chart</div>
           <h3>Your Chart:</h3>
           <div id="g2-chart"></div>
         </div>
