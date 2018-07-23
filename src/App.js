@@ -53,11 +53,8 @@ class App extends Component {
     const {row = [], column = [], measure = [], cube} = this.state.words
     
     if (row.length && column.length && cube && measure.length) {
-      console.log('render chart')
-      // let data = dataSource
-      console.log(row.concat(column), measure)
+
       let data = this.dataset.getVisData(row.concat(column), measure)
-      console.log(data)
       this.chart.source(data)
       let self = this
       this.renderViews({
@@ -132,7 +129,6 @@ class App extends Component {
     let mdx = ev.target.value
     let words = parser(mdx)
     let {row = [], column = [], cube = '', measure = []} = words
-    console.log('words', words)
     this.setState({
       mdxCode: mdx,
       mdxString: (<p>ROWS: [<span style={{color: '#f5222d'}}>{row.toString()}</span>]<br/>
@@ -175,14 +171,12 @@ class App extends Component {
     }
   }
   dragStart = (ev) => {
-    console.log(ev.target.textContent)
     this.currentLabel = ev.target.textContent
   }
   allowDrag = (ev) => {
     ev.preventDefault()
   }
   dragDrop = (ev) => {
-    console.log('drop', ev)
     ev.stopPropagation()
     let text = this.state.mdxCode
     let startPos = this.refs.textarea.selectionStart
@@ -191,12 +185,10 @@ class App extends Component {
     this.setState({
       mdxCode: text
     })
-    console.log(text)
     this.currentLabel = ''
     this.refs.textarea.focus()
   }
   render() {
-    console.log(Cubes, this.state.choosenCube, Cubes[this.state.choosenCube])
     const {Dimensions, Measures} = Cubes[this.state.choosenCube]
     let dims = Object.keys(Dimensions).map((dim) => {
       return (<span key={dim} draggable="true" onDragStart={this.dragStart} className="dim-label">{dim}</span>)

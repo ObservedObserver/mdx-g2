@@ -1,4 +1,4 @@
-const Len = 20;
+const Len = 100;
 const Dimensions = {
     'department': ['优酷', '爱奇艺', 'B站'], 
     'month': ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], 
