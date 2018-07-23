@@ -23,7 +23,7 @@ function generateData () {
         })
         data.push(item)
     }
-    console.log(data)
+    // console.log(data)
     return data
 }
 export {generateData, Dimensions, Measures}

@@ -1,11 +1,31 @@
 import React, { Component } from 'react';
 import {parser} from './utils/parser.js'
-import {Dimensions, Measures, generateData} from './data/test.js'
+import { 
+  Dimensions as videoDims, 
+  Measures as videoMeas, 
+  generateData as videoData
+} from './data/video_data.js'
+import { 
+  Dimensions as foodDims, 
+  Measures as foodMeas, 
+  generateData as foodData
+} from './data/food_data.js'
 import {dataset} from './utils/dataset'
 // import HighlightTextarea from './components/hl-textarea'
 import './App.css';
 import G2 from '@antv/g2'
-const dataSource = generateData()
+const Cubes = {
+  'VideoWebsites': {
+    Dimensions: videoDims,
+    Measures: videoMeas,
+    dataSource: videoData()
+  },
+  'FoodinRestaurants': {
+    Dimensions: foodDims,
+    Measures: foodMeas,
+    dataSource: foodData()
+  }
+}
 class App extends Component {
   constructor () {
     super()
@@ -14,11 +34,12 @@ class App extends Component {
       mdxString: '',
       chartTypes: ['bar', 'line', 'stackBar', 'stackLine', 'area', 'stackArea'],
       choosenType: 'bar',
+      choosenCube: 'VideoWebsites',
       words: {},
       hint: ''
     }
     this.currentLabel = ''
-    this.dataset = new dataset({dataSource})
+    this.dataset = new dataset({dataSource: Cubes[this.state.choosenCube].dataSource})
   }
   componentDidMount () {
     this.chart = new G2.Chart({
@@ -49,7 +70,7 @@ class App extends Component {
       this.chart.render()
     } else if (row.length && column.length && cube && !measure.length) {
       let dimRow, meaColumn;
-      if (Object.keys(Dimensions).indexOf(row[0]) >= 0) {
+      if (Object.keys(Cubes[this.state.choosenCube].Dimensions).indexOf(row[0]) >= 0) {
         [dimRow, meaColumn] = [row, column]
       } else {
         [dimRow, meaColumn] = [column, row]
@@ -128,10 +149,18 @@ class App extends Component {
     this.setState({
       choosenType
     })
-
+    
     this.generateChart(choosenType)
   }
-
+  changeCube = (ev) => {
+    let choosenCube = ev.target.value
+    this.setState({
+      choosenCube,
+      mdxCode: ''
+    })
+    this.chart.clear()
+    this.dataset = new dataset({dataSource: Cubes[ev.target.value].dataSource})
+  }
   generateChart = (choosenType) => {
     try {
       this.renderChart(choosenType)
@@ -167,23 +196,31 @@ class App extends Component {
     this.refs.textarea.focus()
   }
   render() {
+    console.log(Cubes, this.state.choosenCube, Cubes[this.state.choosenCube])
+    const {Dimensions, Measures} = Cubes[this.state.choosenCube]
     let dims = Object.keys(Dimensions).map((dim) => {
       return (<span key={dim} draggable="true" onDragStart={this.dragStart} className="dim-label">{dim}</span>)
     })
     let meas = Object.keys(Measures).map((mea) => {
       return (<span key={mea} draggable="true" onDragStart={this.dragStart} className="mea-label">{mea}</span>)
     })
-    let cubes = ['dataSource'].map((cube) => {
+    let cubes = [this.state.choosenCube].map((cube) => {
       return (<span key={cube} draggable="true" onDragStart={this.dragStart} className="cube-label">{cube}</span>)
     })
     // this.chart.render()
+
     return (
       <div className="App" >
         <header className="App-header">
           <h1 className="App-title">MDX to G2</h1>
         </header>
         <div className="App-container">
-          <p>Cube: {cubes}</p>
+          <p>
+          Cube <select value={this.state.choosenCube} onChange={this.changeCube}>
+          {Object.keys(Cubes).map((cube) => {
+            return (<option key={cube} value={cube}>{cube}</option>)
+          })}
+          </select>: {cubes}</p>
           <p>维度: {dims}</p>
           <p>度量: {meas}</p>
           <p>example: <i>{'select {[department]} on row, {[video]} on column from [dataSource] where {[profit], [count]}'}</i></p>
