@@ -1,0 +1,11 @@
+.hl-textarea {
+    border: 1px solid rgba(0,0,0,0.38);
+    width: 200px;
+    height: 200px;
+    background-color: aquamarine;
+    text-align: left;
+}
+
+.hidden-textarea {
+    display: none;
+}

@@ -8,7 +8,8 @@ const Measures = {
     'profit': [0, 10000], 
     'count': [0, 200]
 }
-function dataSource () {
+let data = []
+function generateData () {
     let i, j, data = [], item;
     let dims = Object.keys(Dimensions)
     let meas = Object.keys(Measures)
@@ -25,4 +26,4 @@ function dataSource () {
     console.log(data)
     return data
 }
-export {dataSource, Dimensions, Measures}
+export {generateData, Dimensions, Measures}
