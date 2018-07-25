@@ -1,143 +1,66 @@
 import React, { Component } from 'react';
 import {parser} from './utils/parser.js'
-import { 
-  Dimensions as videoDims, 
-  Measures as videoMeas, 
-  generateData as videoData
-} from './data/video_data.js'
-import { 
-  Dimensions as foodDims, 
-  Measures as foodMeas, 
-  generateData as foodData
-} from './data/food_data.js'
-import {dataset} from './utils/dataset'
-// import HighlightTextarea from './components/hl-textarea'
+import Chart from './components/mdxChart.js'
 import './App.css';
-import G2 from '@antv/g2'
-const Cubes = {
-  'VideoWebsites': {
-    Dimensions: videoDims,
-    Measures: videoMeas,
-    dataSource: videoData()
-  },
-  'FoodinRestaurants': {
-    Dimensions: foodDims,
-    Measures: foodMeas,
-    dataSource: foodData()
+import 'whatwg-fetch'
+const HOST = 'http://localhost:2018';
+const CubeList = [
+  {
+    name: 'HemaBI',
+    api: '/api/data/hema'
   }
-}
+]
+
 class App extends Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
     this.state = {
-      mdxCode: '',
+      mdx: '',
       mdxString: '',
       chartTypes: ['bar', 'line', 'stackBar', 'stackLine', 'area', 'stackArea'],
       choosenType: 'bar',
-      choosenCube: 'VideoWebsites',
+      choosenCube: CubeList[0],
       words: {},
-      hint: ''
+      hint: '',
+      config: {Dimensions: [], Measures: []},
+      dataSource: []
     }
     this.currentLabel = ''
-    this.dataset = new dataset({dataSource: Cubes[this.state.choosenCube].dataSource})
   }
-  componentDidMount () {
-    this.chart = new G2.Chart({
-      container: 'g2-chart',
-      width: 600,
-      height: 400,
-      padding: [40, 80, 80, 80]
-    });
+  componentWillMount () {
+    this.getData(CubeList[0])
   }
-  renderChart (chartType) {
-    const {row = [], column = [], measure = [], cube} = this.state.words
-    
-    if (row.length && column.length && cube && measure.length) {
+  getData = (choosenCube) => {
+    let self = this
+    fetch(HOST + choosenCube.api, {
+      method: 'GET'
+    }).then((res) => {
+      return res.json()
+    }).then((res) => {
+      console.log(self.setState, this)
+      self.setState({
+        dataSource: res.dataSource,
+        config: res.config
+      }, () => {
+        console.log('finish', self.state)
+      })
+      console.log(res.config)
+    })
+  }
 
-      let data = this.dataset.getVisData(row.concat(column), measure)
-      this.chart.source(data)
-      let self = this
-      this.renderViews({
-        facetFields: [self.dataset.MeasureType, ...row.slice(1).concat(column.slice(1))],
-        dimensions: row,
-        measures: [self.dataset.MeasureValue],
-        colors: column,
-        chartType
-      })
-      this.chart.render()
-    } else if (row.length && column.length && cube && !measure.length) {
-      let dimRow, meaColumn;
-      if (Object.keys(Cubes[this.state.choosenCube].Dimensions).indexOf(row[0]) >= 0) {
-        [dimRow, meaColumn] = [row, column]
-      } else {
-        [dimRow, meaColumn] = [column, row]
-      }
-      let data = this.dataset.getVisData(dimRow, meaColumn)
-      this.chart.source(data)
-      let self = this
-      this.renderViews({
-        facetFields: [self.dataset.MeasureType, ...dimRow.slice(1)], 
-        dimensions: dimRow, 
-        measures: [self.dataset.MeasureValue], 
-        colors: dimRow,
-        chartType
-      })
-      this.chart.render()
-    } else {
-      this.chart.clear()
-    }
-  }
-  renderViews = ({facetFields, dimensions, measures, colors, chartType}) => {
-    this.chart.facet('rect', {
-      fields: facetFields,
-      eachView (view) {
-        let geom;
-        switch (chartType) {
-          case 'bar':
-            geom = view.interval().adjust([{
-              type: 'dodge',
-              marginRatio: 1 / 32
-            }]);
-            break
-          case 'line':
-            geom = view.line()
-            break
-          case 'stackBar':
-            geom = view.intervalStack()
-            break
-          case 'stackLine':
-            geom = view.lineStack()
-            break
-          case 'area':
-            geom = view.area()
-            break
-          case 'stackArea':
-            geom = view.areaStack()
-            break
-          default: 
-            geom = view.interval().adjust([{
-              type: 'dodge',
-              marginRatio: 1 / 32
-            }]);
-        }
-        geom.position(dimensions[0] + '*' + measures[0]).color(colors[0])
-      }
-    });
-  }
   getMDX = (ev) => {
-    // console.log(ev.target.value)
     let mdx = ev.target.value
     let words = parser(mdx)
-    let {row = [], column = [], cube = '', measure = []} = words
+    let {rows = [], columns = [], values = [], cube = ''} = words
     this.setState({
-      mdxCode: mdx,
-      mdxString: (<p>ROWS: [<span style={{color: '#f5222d'}}>{row.toString()}</span>]<br/>
-       COLUMNS: [<span style={{color: '#52c41a'}}>{column.toString()}</span>]<br/>
+      mdx: mdx,
+      mdxString: (<p>ROWS: [<span style={{color: '#f5222d'}}>{rows.toString()}</span>]<br/>
+       COLUMNS: [<span style={{color: '#52c41a'}}>{columns.toString()}</span>]<br/>
        CUBE [<span style={{color: '#faad14'}}>{cube}</span>] <br/>
-       MEASURES: [<span style={{color: '#1890ff'}}>{measure.toString()}</span>]</p> ),
+       MEASURES: [<span style={{color: '#1890ff'}}>{values.toString()}</span>]</p> ),
       words: words
     })
-    
+
   }
 
   changeChart = (ev) => {
@@ -145,31 +68,19 @@ class App extends Component {
     this.setState({
       choosenType
     })
-    
-    this.generateChart(choosenType)
   }
+
   changeCube = (ev) => {
-    let choosenCube = ev.target.value
+    let choosenCube = CubeList.find((cube) => {
+      return cube === ev.target.value
+    })
     this.setState({
       choosenCube,
-      mdxCode: ''
+      mdx: ''
     })
-    this.chart.clear()
-    this.dataset = new dataset({dataSource: Cubes[ev.target.value].dataSource})
+    this.getData(choosenCube)
   }
-  generateChart = (choosenType) => {
-    try {
-      this.renderChart(choosenType)
-      this.setState({
-        hint: 'running'
-      })
-    } catch (err) {
-      console.log(err)
-      this.setState({
-        hint: 'this is a grammer error on your mdx'
-      })
-    }
-  }
+
   dragStart = (ev) => {
     this.currentLabel = ev.target.textContent
   }
@@ -178,26 +89,26 @@ class App extends Component {
   }
   dragDrop = (ev) => {
     ev.stopPropagation()
-    let text = this.state.mdxCode
+    let text = this.state.mdx
     let startPos = this.refs.textarea.selectionStart
     let endPos = this.refs.textarea.selectionEnd
-    text = text.substring(0, startPos) + '[' +this.currentLabel + ']' + text.substring(endPos, text.length);  
+    text = text.substring(0, startPos) + '[' +this.currentLabel + ']' + text.substring(endPos, text.length);
     this.setState({
-      mdxCode: text
+      mdx: text
     })
     this.currentLabel = ''
     this.refs.textarea.focus()
   }
   render() {
-    const {Dimensions, Measures} = Cubes[this.state.choosenCube]
-    let dims = Object.keys(Dimensions).map((dim) => {
+    const {Dimensions, Measures} = this.state.config
+    let dims = Dimensions.map((dim) => {
       return (<span key={dim} draggable="true" onDragStart={this.dragStart} className="dim-label">{dim}</span>)
     })
-    let meas = Object.keys(Measures).map((mea) => {
+    let meas = Measures.map((mea) => {
       return (<span key={mea} draggable="true" onDragStart={this.dragStart} className="mea-label">{mea}</span>)
     })
-    let cubes = [this.state.choosenCube].map((cube) => {
-      return (<span key={cube} draggable="true" onDragStart={this.dragStart} className="cube-label">{cube}</span>)
+    let cubes = CubeList.map((cube) => {
+      return (<span key={cube.name} draggable="true" onDragStart={this.dragStart} className="cube-label">{cube.name}</span>)
     })
     // this.chart.render()
 
@@ -207,20 +118,24 @@ class App extends Component {
           <h1 className="App-title">MDX to G2</h1>
         </header>
         <div className="App-container">
-          <p>
-          Cube <select value={this.state.choosenCube} onChange={this.changeCube}>
-          {Object.keys(Cubes).map((cube) => {
-            return (<option key={cube} value={cube}>{cube}</option>)
+          <h5>Cube</h5>
+          <div className="label-container">
+          <select value={this.state.choosenCube} onChange={this.changeCube}>
+          {CubeList.map((cube) => {
+            return (<option key={cube.name} value={cube.name}>{cube.name}</option>)
           })}
-          </select>: {cubes}</p>
-          <p>维度: {dims}</p>
-          <p>度量: {meas}</p>
+          </select>: {cubes}</div>
+          <h5>维度:</h5>
+          <div className="label-container">{dims}</div>
+          <h5>>度量:</h5>
+          <div className="label-container">{meas}</div>
+          <br/>
           <p>example: <i>{'select {[department]} on row, {[video]} on column from [dataSource] where {[profit], [count]}'}</i></p>
           <h3>Your Mdx:</h3>
           {this.state.mdxString}
           <h4>Debug: {this.state.hint}</h4>
           <div>
-          <textarea ref="textarea" onDrop={this.dragDrop} onDragOver={this.allowDrag} onChange={this.getMDX} className="App-Input" value={this.state.mdxCode}></textarea>
+          <textarea ref="textarea" onDrop={this.dragDrop} onDragOver={this.allowDrag} onChange={this.getMDX} className="App-Input" value={this.state.mdx}></textarea>
           </div>
           <div>
             <select value={this.state.choosenType} onChange={this.changeChart}>
@@ -229,9 +144,8 @@ class App extends Component {
             })}
             </select>
           </div>
-          <div className="App-button" onClick={this.generateChart} >Generate Chart</div>
           <h3>Your Chart:</h3>
-          <div id="g2-chart"></div>
+          <Chart dataSource={this.state.dataSource} mdx={this.state.mdx} />
         </div>
       </div>
     );

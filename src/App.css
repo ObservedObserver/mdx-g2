@@ -22,7 +22,10 @@
 .App-title {
   font-size: 1.5em;
 }
-
+.label-container{
+  overflow: auto;
+  max-height: 260px;
+}
 .App-intro {
   font-size: large;
 }
@@ -39,6 +42,9 @@
 
 }
 .dim-label {
+  display: block;
+  min-width: 10px;
+  float: left;
   background-color: #91d5ff;
   border: 1px solid #40a9ff;
   color: #595959;
@@ -47,6 +53,9 @@
   padding: 2px;
 }
 .mea-label {
+  display: block;
+  min-width: 10px;
+  float: left;
   background-color: #b7eb8f;
   border: 1px solid #73d13d;
   color: #595959;
@@ -55,6 +64,9 @@
   padding: 2px;
 }
 .cube-label {
+  display: block;
+  min-width: 10px;
+  float: left;
   background-color: #ffadd2;
   border: 1px solid #f759ab;
   color: #595959;

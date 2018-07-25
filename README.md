@@ -1,15 +1,25 @@
 # MDX to G2
-使用MDX的方式创建G2图表
+Convert MDX(sql like) into G2
 
-## 安装
+## install
 ```bash
 npm i
 
 npm start
 ```
-访问[localhost:3000](http://localhost:3000)
+visit[localhost:3000](http://localhost:3000)
 
-## 示例
+## usage
+
+```js
+import Chart from './components/mdxChart.js'
+// here are three examples
+const mdx1 = 'select {[restaurant]} on row, {[food]} on column from [dataSource] where {[price], [rating]}'
+const mdx2 = 'select {[restaurant]} on row, {[rating], [price]} on column from [dataSource]'
+const mdx3 = 'select {[rating], [price]} on row, {[restaurant]} on column from [dataSource]'
+ReactDOM.render(<Chart dataSource={dataSource} mdx={mdx1}  />, document.getElementById('root'));
+```
+## examples
 选择Cube: `VideoWebsites`<br>
 由`where`选取度量
 ```sql
