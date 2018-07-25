@@ -17,13 +17,14 @@ class App extends Component {
     this.state = {
       mdx: '',
       mdxString: '',
-      chartTypes: ['bar', 'line', 'stackBar', 'stackLine', 'area', 'stackArea'],
+      chartTypes: ['bar', 'line', 'stackBar', 'stackLine', 'area', 'stackArea', 'point'],
       choosenType: 'bar',
       choosenCube: CubeList[0],
       words: {},
       hint: '',
       config: {Dimensions: [], Measures: []},
-      dataSource: []
+      dataSource: [],
+      isChart: false
     }
     this.currentLabel = ''
   }
@@ -58,7 +59,8 @@ class App extends Component {
        COLUMNS: [<span style={{color: '#52c41a'}}>{columns.toString()}</span>]<br/>
        CUBE [<span style={{color: '#faad14'}}>{cube}</span>] <br/>
        MEASURES: [<span style={{color: '#1890ff'}}>{values.toString()}</span>]</p> ),
-      words: words
+      words: words,
+      isChart: false
     })
 
   }
@@ -69,7 +71,11 @@ class App extends Component {
       choosenType
     })
   }
-
+  generateChart = () => {
+    this.setState({
+      isChart: true
+    })
+  }
   changeCube = (ev) => {
     let choosenCube = CubeList.find((cube) => {
       return cube === ev.target.value
@@ -144,8 +150,10 @@ class App extends Component {
             })}
             </select>
           </div>
+          <div class="App-button" onClick={this.generateChart}>Generate Chart</div>
           <h3>Your Chart:</h3>
-          <Chart dataSource={this.state.dataSource} mdx={this.state.mdx} />
+          {this.state.isChart ?  <Chart dataSource={this.state.dataSource} mdx={this.state.mdx} /> : null}
+         
         </div>
       </div>
     );

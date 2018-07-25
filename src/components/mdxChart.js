@@ -48,24 +48,42 @@ class mdxChart extends Component {
 
   renderChart () {
     const { rows = [], columns = [], values = [], cube = 'default' } = this.words
-    const sampleData = this.dataSource
+    const sampleData = this.dataSource[0]
     console.log('render', this.words)
     let self = this
     let data
     if (rows.length > 0 && columns.length > 0 && values.length > 0) {
         console.log(rows, columns, values)
         // 完整的mdx，包含row，column，value
-        data = this.dataset.getVisData(rows.concat(columns), values)
+        // data = this.dataset.getVisData(rows.concat(columns), values)
 
-        this.chart.source(data)
-        
-        this.renderViews({
-            facetFields: [self.dataset.MeasureType, ...rows.slice(1).concat(columns.slice(1))],
-            dimensions: rows,
-            measures: [self.dataset.MeasureValue],
-            colors: columns,
-            chartType: self.chartType
-        })
+        if (typeof sampleData[rows[0]] === 'number' && typeof sampleData[columns[0]] === 'number') {
+
+            // this.chartType = 'point'
+            // select {[lastweek_avg_sale_amount_1d]} on row, {[avg_sale_amount_1d]} on column from [HemaBI] where {[area]}
+
+            data = this.dataSource
+            console.log(data)
+            console.log('scatter', sampleData, rows, columns)
+            this.chart.source(data)
+            this.renderViews({
+                facetFields: [...values.slice(1)],
+                dimensions: rows,
+                measures: columns,
+                colors: values,
+                chartType: 'point'
+            })
+        } else {
+            data = this.dataset.getVisData(rows.concat(columns), values)
+            this.chart.source(data)
+            this.renderViews({
+                facetFields: [self.dataset.MeasureType, ...rows.slice(1).concat(columns.slice(1))],
+                dimensions: rows,
+                measures: [self.dataset.MeasureValue],
+                colors: columns,
+                chartType: self.chartType
+            })
+        }
 
         this.chart.render()
 
@@ -73,7 +91,7 @@ class mdxChart extends Component {
         // 不含value，将 value置于row或column
         let dimRow, meaColumn;
 
-        if (typeof sampleData[0][columns[0]] === 'number') {
+        if (typeof sampleData[columns[0]] === 'number') {
             [dimRow, meaColumn] = [rows, columns]
         } else {
             [dimRow, meaColumn] = [columns, rows]
@@ -120,6 +138,9 @@ class mdxChart extends Component {
             break
           case 'stackArea':
             geom = view.areaStack()
+            break
+          case 'point':
+            geom = view.point()
             break
           default:
             geom = view.interval().adjust([{
