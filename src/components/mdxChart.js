@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import {parser} from '../utils/parser.js'
 
 
-import {dataset} from '../utils/dataset'
+import {dataset} from '../utils/dataset.js'
+import {dataset as pointset} from '../utils/dataset.plus.js'
 
 import G2 from '@antv/g2'
 let chartId = 0;
@@ -43,6 +44,7 @@ class mdxChart extends Component {
     this.words = parser(mdx)
     this.dataSource = dataSource
     this.dataset = new dataset({dataSource})
+    this.nextProps = nextProps
     this.renderChart()
   }
 
@@ -58,14 +60,19 @@ class mdxChart extends Component {
         // data = this.dataset.getVisData(rows.concat(columns), values)
 
         if (typeof sampleData[rows[0]] === 'number' && typeof sampleData[columns[0]] === 'number') {
-
+            const { method = 'avg', aggMode = true } = this.nextProps || this.props
             // this.chartType = 'point'
             // select {[lastweek_avg_sale_amount_1d]} on row, {[avg_sale_amount_1d]} on column from [HemaBI] where {[area]}
-
-            data = this.dataSource
-            console.log(data)
-            console.log('scatter', sampleData, rows, columns)
-            this.chart.source(data)
+            if (aggMode) {
+                this.pointset = new pointset({dataSource: this.dataSource})
+                let { aggData } = this.pointset.getVisData([...values, ...rows.slice(1).concat(columns.slice(1))], method)
+                // console.log(data)
+                console.log('scatter', sampleData, rows, columns)
+                this.chart.source(aggData)
+            } else {
+                this.chart.source(this.dataSource)
+            }
+            
             this.renderViews({
                 facetFields: [...values.slice(1)],
                 dimensions: rows,

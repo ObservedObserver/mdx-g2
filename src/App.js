@@ -24,6 +24,7 @@ class App extends Component {
       hint: '',
       config: {Dimensions: [], Measures: []},
       dataSource: [],
+      aggMode: false,
       isChart: false
     }
     this.currentLabel = ''
@@ -86,7 +87,12 @@ class App extends Component {
     })
     this.getData(choosenCube)
   }
-
+  changeAggMode = () => {
+    let mode = !this.state.aggMode
+    this.setState({
+      aggMode: mode
+    })
+  }
   dragStart = (ev) => {
     this.currentLabel = ev.target.textContent
   }
@@ -150,9 +156,10 @@ class App extends Component {
             })}
             </select>
           </div>
-          <div class="App-button" onClick={this.generateChart}>Generate Chart</div>
+          <div className="App-button" onClick={this.changeAggMode}>{this.state.aggMode ? '聚合' : '非聚合' }</div>
+          <div className="App-button" onClick={this.generateChart}>Generate Chart</div>
           <h3>Your Chart:</h3>
-          {this.state.isChart ?  <Chart dataSource={this.state.dataSource} mdx={this.state.mdx} /> : null}
+          {this.state.isChart ?  <Chart dataSource={this.state.dataSource} mdx={this.state.mdx} aggMode={this.state.aggMode} /> : null}
          
         </div>
       </div>
