@@ -22,6 +22,10 @@ const mdx2 = 'select {[restaurant]} on row, {[rating], [price]} on column from [
 const mdx3 = 'select {[rating], [price]} on row, {[restaurant]} on column from [dataSource]'
 ReactDOM.render(<Chart dataSource={dataSource} mdx={mdx1}  />, document.getElementById('root'));
 ```
+
+## demo
+![](http://carrot.zone:8080/mdx2g2.gif)
+![](http://carrot.zone:8080/mdx2g2-2.gif)
 ## 示例
 选择Cube: `VideoWebsites`<br>
 由`where`选取度量

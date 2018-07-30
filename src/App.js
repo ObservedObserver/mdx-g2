@@ -8,6 +8,10 @@ const CubeList = [
   {
     name: 'HemaBI',
     api: '/api/data/hema'
+  },
+  {
+    name: 'Titanic',
+    api: '/api/data/titanic'
   }
 ]
 
@@ -79,7 +83,7 @@ class App extends Component {
   }
   changeCube = (ev) => {
     let choosenCube = CubeList.find((cube) => {
-      return cube === ev.target.value
+      return cube.name === ev.target.value
     })
     this.setState({
       choosenCube,
